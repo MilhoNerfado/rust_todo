@@ -38,6 +38,16 @@ struct TodoItem {
     title: String,
 }
 
+impl ToString for TodoItem {
+    fn to_string(&self) -> String {
+        String::from(format!(
+            "[{}] {}",
+            if self.is_done { " " } else { "x" },
+            self.title
+        ))
+    }
+}
+
 struct TodoList {
     state: ListState,
     items: Vec<TodoItem>,
@@ -48,6 +58,38 @@ impl TodoList {
         TodoList {
             state: ListState::default(),
             items,
+        }
+    }
+
+    fn default() -> TodoList {
+        TodoList {
+            state: ListState::default(),
+            items: vec![
+                TodoItem {
+                    is_done: false,
+                    title: "Hello world".to_string(),
+                },
+                TodoItem {
+                    is_done: true,
+                    title: "Hello again".to_string(),
+                },
+                TodoItem {
+                    is_done: true,
+                    title: "Bye!!".to_string(),
+                },
+                TodoItem {
+                    is_done: false,
+                    title: "A line here...".to_string(),
+                },
+                TodoItem {
+                    is_done: true,
+                    title: "What should i do?? \nthis?".to_string(),
+                },
+                TodoItem {
+                    is_done: true,
+                    title: "Uno\nDos\nTres!".to_string(),
+                },
+            ],
         }
     }
 
@@ -88,6 +130,10 @@ impl TodoList {
         };
         self.state.select(Some(i));
     }
+
+    fn unselec(&mut self) {
+        self.state.select(None);
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -124,22 +170,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>) -> io::Result<()> {
         typebox: true,
     };
 
-    let big_data: Vec<TodoItem> = vec![
-        TodoItem {
-            is_done: false,
-            title: "Hello world".to_string(),
-        },
-        TodoItem {
-            is_done: true,
-            title: "Hello again".to_string(),
-        },
-        TodoItem {
-            is_done: true,
-            title: "Bye!!".to_string(),
-        },
-    ];
-
-    let mut todo_list = TodoList::new(big_data);
+    let mut todo_list = TodoList::default();
 
     loop {
         terminal.draw(|f| ui(f, ui_config, &mut todo_list))?;
@@ -151,6 +182,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>) -> io::Result<()> {
                 KeyCode::Home => ui_config.typebox.toggle(),
                 KeyCode::Down => todo_list.next(),
                 KeyCode::Up => todo_list.previous(),
+                KeyCode::Left => todo_list.unselec(),
                 _ => (),
             }
         }
@@ -198,7 +230,8 @@ fn ui<B: Backend>(f: &mut Frame<B>, config: UiConfig, data: &mut TodoList) {
         .items
         .iter()
         .map(|i| {
-            ListItem::new(i.title.clone()).style(Style::default().fg(Color::Black).bg(Color::White))
+            ListItem::new(i.to_string().clone())
+                .style(Style::default().fg(Color::Black).bg(Color::White))
         })
         .collect();
 
