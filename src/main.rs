@@ -48,6 +48,12 @@ impl ToString for TodoItem {
     }
 }
 
+impl TodoItem {
+    fn toggle(&mut self) {
+        self.is_done = !self.is_done;
+    }
+}
+
 struct TodoList {
     state: ListState,
     items: Vec<TodoItem>,
@@ -101,6 +107,13 @@ impl TodoList {
     fn add(&mut self, item: TodoItem) -> &mut TodoList {
         self.items.push(item);
         self
+    }
+
+    fn toggle(&mut self) {
+        if let Some(i) = self.state.selected() {
+            self.items[i].toggle();
+        } else {
+        };
     }
 
     fn next(&mut self) {
@@ -183,6 +196,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>) -> io::Result<()> {
                 KeyCode::Down => todo_list.next(),
                 KeyCode::Up => todo_list.previous(),
                 KeyCode::Left => todo_list.unselec(),
+                KeyCode::Enter => todo_list.toggle(),
                 _ => (),
             }
         }
